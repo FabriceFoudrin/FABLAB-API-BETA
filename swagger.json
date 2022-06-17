@@ -1,0 +1,35 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "version": "1.0.0 and 2.0.0",
+        "title": "LDP-API",
+        "description": "This is all about my LSP-API"
+        },
+    "host": "localhost:8081",
+    "basePath": "/ldp-api/",
+    "securityDefinitions":{
+            "basicAuth":{
+                 "type": "basic"
+            }
+    },
+    "security":{
+             "basicAuth": []
+    },
+    "tags": [
+            {
+              "name": "CouchClusterAllocator API",
+              "description": "API for Allocate Couch Clusters for    merchants . Requests should have a basic auth header."
+            },
+            {
+              "name" : "FileStore API",
+              "description" : "API for manipulate receipts . Requests should have a basic auth header.Content type must be application/json."
+            }
+    ],
+    "consumes": [
+           "application/json"
+                ],
+    "produces": [
+            "application/json"
+    ],
+    "paths": {}
+ }
