@@ -66,6 +66,19 @@ module.exports = function(app)
         }
     });
 
+    app.get("/user_resa/:id&:orderType", async (req, res) => {
+        const { id } = req.params;
+        const { orderType } = req.params;
+        const orderBy = {o1: "date_debut_resa DESC", o2: "date_debut_resa"}
+        try {
+            const allResa = await pool.query("SELECT id_reservation, date_debut_resa, date_fin_resa, pin FROM reservation WHERE id_user = $1 ORDER BY " + orderBy[orderType], [id]);
+
+            res.json(allResa.rows);
+        } catch (err) {
+            console.error(err.message);
+        }
+    });
+
     /**
      * @openapi
      * '/resa':
@@ -101,23 +114,25 @@ module.exports = function(app)
      app.post("/resa", async (req, res) => {
         try {
             //await
-            const { date_debut_resa } = req.body; // SET DEBUT RESA 
-            const { date_fin_resa } = req.body; // SET DATE FIN RESA
-
-            const { qrcode_link } = req.body; // SET QRCODE LINK
+            // const { qrcode_link } = req.body; // SET QRCODE LINK
             const { id_user } = req.body; // SET ID_USER
-
+            const { reservations } = req.body; // SET ID_USER
             const { listIdEspace } = req.body; // LIST ID FOR ESPACE RESA
 
-            var now = new Date().toISOString();
-            const newResa = await pool.query("INSERT INTO reservation (date_resa,date_debut_resa,date_fin_resa,pin,qrcode_link,id_user) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id_reservation", [now,date_debut_resa,date_fin_resa,entierAleatoire(10000, 99999),qrcode_link,id_user]);        
-            
-            var id_new_resa = newResa.rows[0].id_reservation;
-            listIdEspace.forEach(function(value){
-                const newEspaceForResa = pool.query("INSERT INTO espace_resa (id_espace,id_reservation,date_crea_resa_espace) VALUES ($1,$2,$3) RETURNING *", [value,id_new_resa,now]);
-            });
-            
-            res.json(newResa);
+            reservations.forEach(async (reserv)=>{
+                const { date_debut_resa } = reserv; // SET DEBUT RESA 
+                const { date_fin_resa } = reserv; // SET DATE FIN RESA
+
+                var now = new Date().toISOString();
+                const newResa = await pool.query("INSERT INTO reservation (date_resa,date_debut_resa,date_fin_resa,pin,id_user) VALUES ($1,$2,$3,$4,$5) RETURNING id_reservation", [now,date_debut_resa,date_fin_resa,entierAleatoire(10000, 99999),id_user]);        
+                
+                var id_new_resa = newResa.rows[0].id_reservation;
+                listIdEspace.forEach(function(value){
+                    const newEspaceForResa = pool.query("INSERT INTO espace_resa (id_espace,id_reservation,date_crea_resa_espace) VALUES ($1,$2,$3) RETURNING *", [value,id_new_resa,now]);
+                });    
+            })
+
+            res.json({"success": "Résevations effectués avec succès"});
 
         } catch (err) {
             console.error(err.message);
@@ -166,8 +181,6 @@ module.exports = function(app)
         } catch (err) {
             console.error(err.message);
         }
-
-
     });
 
 
