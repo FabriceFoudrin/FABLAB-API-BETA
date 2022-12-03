@@ -1,10 +1,10 @@
 const Pool = require("pg").Pool;
 
 const pool = new Pool({
-    user : "marcus",
-    password : "boss",
-    database : "api_fablab",
-    host : "localhost",
+    user : "efbyvqlk",
+    password : "Tqmrp5WpR_FuOtNFSWBCY4ykTJsgz9aC",
+    database : "efbyvqlk",
+    host : "surus.db.elephantsql.com",
     port : 5432
 });
 
