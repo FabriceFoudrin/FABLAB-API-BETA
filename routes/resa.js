@@ -38,6 +38,74 @@ module.exports = function(app)
 
     /**
      * @openapi
+     * '/resa/date':
+     *  post:
+     *     tags:
+     *     - Réservations par date
+     *     summary: Récuperer toutes les réservations par date
+     *     responses:
+     *       200:
+     *         description: Success
+     *         content:
+     *          application/json:
+     *            schema:
+     *              type: json
+     *              items:
+     *                type: object
+     *       400:
+     *         description: Mauvaise requête
+     */
+    app.post("/resa/date", async (req, res) => {
+        const { dates } = req.body;
+        const { listIdEspace } = req.body;
+
+        const baseHours = [8,9,10,11,12,13,14,15,16,17,18]
+        const hoursToRemove = []
+        let filteredHours = []
+
+        try {
+            const resaByDate = await pool.query(
+                `SELECT date_debut_resa, EXTRACT(HOUR FROM date_debut_resa) AS start_hour, date_fin_resa, EXTRACT(HOUR FROM date_fin_resa) AS end_hour, id_espace 
+                FROM reservation
+                INNER JOIN espace_resa
+                ON espace_resa.id_reservation = reservation.id_reservation
+                WHERE id_espace = ANY($1::int[]) AND date_debut_resa = ANY($2::timestamp[])
+                ORDER BY start_hour, end_hour`, [[listIdEspace], [dates]]
+            );
+
+            resaByDate.rows.forEach((date_resa)=>{
+                start_hour = Number.parseInt(date_resa.start_hour);
+                end_hour = Number.parseInt(date_resa.end_hour);
+                start_hour_i = baseHours.indexOf(start_hour);
+                end_hour_i = baseHours.indexOf(end_hour);
+
+                if (start_hour_i !== -1)
+                {
+                    for (let index = start_hour_i; index < end_hour_i; index++)
+                    {
+                        let baseHoursVal = baseHours[index];
+
+                        !hoursToRemove.includes(baseHoursVal) && hoursToRemove.push(baseHoursVal);
+                    }
+                }
+
+            })
+
+            baseHours.forEach((val)=>{
+                if(!hoursToRemove.includes(val))
+                {
+                    filteredHours.push(val)
+                }
+            })
+
+            res.json(filteredHours);
+        } catch (err) {
+            console.error(err.message);
+        }
+    });
+
+    /**
+     * @openapi
      * '/resa/{id}':
      *  get:
      *     tags:
@@ -246,11 +314,9 @@ module.exports = function(app)
     app.post("/activeresa", async (req, res) => {
         try {
             //await
-            const { id_reservation } = req.body; // id resa
             const { pin } = req.body; // pin resa
 
-
-            const activeResa = await pool.query("SELECT * FROM reservation WHERE id_reservation = $1 and pin = $2", [id_reservation,pin]);
+            const activeResa = await pool.query("SELECT * FROM reservation WHERE pin = $1", [pin]);
                  
             
             var now = new Date().toISOString();
@@ -284,6 +350,7 @@ module.exports = function(app)
 
         } catch (err) {
             console.error(err.message);
+            res.json(false);
         }
     });
 

@@ -56,7 +56,7 @@ module.exports = function(app)
     app.get("/user/:id", async (req, res) => {
         const { id } = req.params;
         try {
-            const user = await pool.query("SELECT id_user,email,nom,prenom,id_classe FROM users WHERE id_user = $1", [id]);
+            const user = await pool.query("SELECT id_user,email,nom,prenom,intitule FROM users u INNER JOIN classes c ON c.id_classe = u.id_classe WHERE id_user = $1", [id]);
             res.json(user.rows[0]);
         } catch (err) {
             console.error(err.message);
