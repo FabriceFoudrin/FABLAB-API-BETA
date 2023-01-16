@@ -65,11 +65,15 @@ module.exports = function(app)
 
         try {
             const resaByDate = await pool.query(
-                `SELECT date_debut_resa, EXTRACT(HOUR FROM date_debut_resa) AS start_hour, date_fin_resa, EXTRACT(HOUR FROM date_fin_resa) AS end_hour, id_espace 
+                `SELECT 
+                    date_debut_resa::timestamp::date,
+                    EXTRACT(HOUR FROM date_debut_resa) AS start_hour,
+                    EXTRACT(HOUR FROM date_fin_resa) AS end_hour,
+                    id_espace 
                 FROM reservation
                 INNER JOIN espace_resa
                 ON espace_resa.id_reservation = reservation.id_reservation
-                WHERE id_espace = ANY($1::int[]) AND date_debut_resa = ANY($2::timestamp[])
+                WHERE id_espace = ANY($1::int[]) AND date_debut_resa::timestamp::date = ANY($2::timestamp[])
                 ORDER BY start_hour, end_hour`, [[listIdEspace], [dates]]
             );
 
@@ -139,7 +143,21 @@ module.exports = function(app)
         const { orderType } = req.params;
         const orderBy = {o1: "date_debut_resa DESC", o2: "date_debut_resa"}
         try {
-            const allResa = await pool.query("SELECT id_reservation, date_debut_resa, date_fin_resa, pin FROM reservation WHERE id_user = $1 ORDER BY " + orderBy[orderType], [id]);
+            const allResa = await pool.query(
+                `SELECT 
+                    r.id_reservation,
+                    date_debut_resa,
+                    date_fin_resa,
+                    intitule,
+                    pin
+                FROM 
+                    reservation r
+                    INNER JOIN espace_resa er ON r.id_reservation = er.id_reservation
+                    INNER JOIN espaces es ON er.id_espace = es.id_espace
+                WHERE id_user = $1 
+                ORDER BY ${orderBy[orderType]}`,
+                [id]
+            );
 
             res.json(allResa.rows);
         } catch (err) {
