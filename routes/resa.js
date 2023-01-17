@@ -73,8 +73,8 @@ module.exports = function(app)
                 FROM reservation
                 INNER JOIN espace_resa
                 ON espace_resa.id_reservation = reservation.id_reservation
-                WHERE id_espace = ANY($1::int[]) AND date_debut_resa::timestamp::date = ANY($2::timestamp[])
-                ORDER BY start_hour, end_hour`, [[listIdEspace], [dates]]
+                WHERE id_espace = ANY($1) AND date_debut_resa::timestamp::date = ANY($2)
+                ORDER BY start_hour, end_hour`, [listIdEspace, dates]
             );
 
             resaByDate.rows.forEach((date_resa)=>{
@@ -85,11 +85,12 @@ module.exports = function(app)
 
                 if (start_hour_i !== -1)
                 {
-                    for (let index = start_hour_i; index < end_hour_i; index++)
+                    for (let index = start_hour_i; index <= end_hour_i; index++)
                     {
                         let baseHoursVal = baseHours[index];
 
                         !hoursToRemove.includes(baseHoursVal) && hoursToRemove.push(baseHoursVal);
+                        hoursToRemove.includes(11) && hoursToRemove.push(12);
                     }
                 }
 
