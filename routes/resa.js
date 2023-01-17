@@ -85,12 +85,11 @@ module.exports = function(app)
 
                 if (start_hour_i !== -1)
                 {
-                    for (let index = start_hour_i; index <= end_hour_i; index++)
+                    for (let index = start_hour_i; index < end_hour_i; index++)
                     {
                         let baseHoursVal = baseHours[index];
 
                         !hoursToRemove.includes(baseHoursVal) && hoursToRemove.push(baseHoursVal);
-                        hoursToRemove.includes(11) && hoursToRemove.push(12);
                     }
                 }
 
