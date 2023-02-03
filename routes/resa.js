@@ -213,8 +213,8 @@ module.exports = function(app)
                 const newResa = await pool.query("INSERT INTO reservation (date_resa,date_debut_resa,date_fin_resa,pin,id_user) VALUES ($1,$2,$3,$4,$5) RETURNING id_reservation", [now,date_debut_resa,date_fin_resa,entierAleatoire(10000, 99999),id_user]);        
                 
                 var id_new_resa = newResa.rows[0].id_reservation;
-                listIdEspace.forEach(function(value){
-                    const newEspaceForResa = pool.query("INSERT INTO espace_resa (id_espace,id_reservation,date_crea_resa_espace) VALUES ($1,$2,$3) RETURNING *", [value,id_new_resa,now]);
+                listIdEspace.forEach(async function(value){
+                    await pool.query("INSERT INTO espace_resa (id_espace,id_reservation,date_crea_resa_espace) VALUES ($1,$2,$3) RETURNING *", [value,id_new_resa,now]);
                 });    
             })
 
